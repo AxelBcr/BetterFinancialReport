@@ -40,9 +40,15 @@ class EasyBourseValorisationDownloader:
                 "download.default_directory": self.download_dir,
                 "download.prompt_for_download": False,
                 "download.directory_upgrade": True,
-                "safebrowsing.enabled": True
+                "safebrowsing.enabled": True,
+                "plugins.always_open_pdf_externally": True  # Pour les PDF si besoin
             }
             options.add_experimental_option("prefs", prefs)
+
+            # ===== MODE HEADLESS ACTIVÉ =====
+            options.add_argument('--headless=new')  # Nouveau mode headless plus stable
+            options.add_argument('--disable-gpu')  # Recommandé pour le mode headless
+            options.add_argument('--window-size=1920,1080')  # Important en headless
 
             # Options pour éviter la détection
             options.add_argument('--disable-blink-features=AutomationControlled')
@@ -52,11 +58,18 @@ class EasyBourseValorisationDownloader:
             # Autres options utiles
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
-            # options.add_argument('--headless')  # Décommenter pour mode headless
+            options.add_argument('--disable-web-security')
+            options.add_argument('--disable-features=VizDisplayCompositor')
+            options.add_argument('--disable-extensions')
+
+            # Pour réduire les logs
+            options.add_argument('--log-level=3')  # Fatal errors only
+            options.add_argument('--silent')
 
             driver = webdriver.Chrome(options=options)
             driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            driver.set_window_size(1920, 1080)
+
+            # Pas besoin de set_window_size car déjà défini dans les options
 
             return driver
         except Exception as e:
