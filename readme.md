@@ -1,4 +1,4 @@
-# EasyBourse Portfolio Automation
+# Better Visuals For Your EasyBourse Financial Report
 
 <div align="center">
 
