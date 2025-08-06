@@ -524,10 +524,12 @@ class EasyBourseValorisationDownloader:
                 logger.error("Échec de la connexion")
                 return False
 
+
             # Télécharger le CSV
             csv_path = self.download_valorisation_csv(driver)
             if not csv_path:
                 logger.error("Échec du téléchargement du CSV")
+                logger.error("Vérifier votre connexion Internet ou vos identifiants de connexion")
                 return False
 
             # Parser les données
