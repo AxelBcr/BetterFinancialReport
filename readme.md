@@ -56,13 +56,20 @@ The entire process is logged in the console, showing connection status, download
 </table>
 <br><br>
 
-[Space for GIF: Console output showing the extraction process with progress indicators]
+---
 
 ### 2. Power BI Dashboard Update
 
-After successful data extraction, the script processes the CSV file and updates the Excel database with new information. The Power BI dashboard then opens automatically, ready for a one-click refresh. The Excel file serves as the data source for Power BI, maintaining full historical records while adding new valuation dates. The update process preserves all existing data, intelligently merging new positions and updating existing ones based on the valuation date.
+After successful data extraction, the script processes the CSV file and updates the Excel database with new information.   
+The Excel file serves as the data source for Power BI, maintaining full historical records while adding new valuation dates.   
+After opening the PowerBi file (.pbix) you need to make sure that you refresh the database.
 
-[Space for GIF: Power BI opening and refreshing with new data]
+<div align="center">
+<img src="README_Data/Update_PowerBi.gif" style="max-width: 100%; width="600"/>
+<br><br>
+</div>
+
+---
 
 ### 3. Interactive Dashboard Analysis
 
