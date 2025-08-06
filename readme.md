@@ -73,9 +73,16 @@ After opening the PowerBi file (.pbix) you need to make sure that you refresh th
 
 ### 3. Interactive Dashboard Analysis
 
-The Power BI dashboard transforms raw portfolio data into actionable insights. Users can explore their portfolio through multiple perspectives: temporal evolution charts showing portfolio value over time, sector allocation pie charts, individual position performance metrics, and gain/loss analysis by security. Interactive filters allow deep dives into specific time periods or asset classes. The dashboard updates in real-time as new data is imported, providing always-current portfolio analytics.
+The Power BI dashboard transforms raw portfolio data into actionable insights.   
+Users can explore their portfolio through multiple perspectives:   
+value over time, sector allocation pie charts, individual position, gain/loss and more.     
+   
+Interactive filters allow deep dives into specific time periods or asset classes.
 
-[Space for GIF: Navigating through different dashboard views and using interactive filters]
+<div align="center">
+<img src="README_Data/Use_PowerBi.gif" style="max-width: 100%; width="600"/>
+<br><br>
+</div>
 
 </div>
 
@@ -93,8 +100,8 @@ The Power BI dashboard transforms raw portfolio data into actionable insights. U
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/easybourse-automation.git
-cd easybourse-automation
+git clone https://github.com/AxelBcr/BetterFinancialReport.git
+cd BetterFinancialReport
 ```
 
 2. **Install dependencies**
@@ -125,8 +132,7 @@ password = "your_password"
 Simply double-click `Update_Dashboard.bat` to:
 1. Launch the extraction process
 2. Update the Excel database
-3. Open Power BI Dashboard
-4. Continue running with hourly updates (can be minimized)
+3. Continue running with hourly updates (can be changed in the .bat)
 
 ### Manual Execution
 
@@ -137,7 +143,9 @@ python easybourse_valorisation.py
 ### First Time Setup
 
 On first run, the script will:
-- Create the Excel database (`EasyBourse.xlsx`)
+- Create the Excel database (`EasyBourse.xlsx`),   
+  I recommend not deleting the .xlsx that is already in the repo,   
+  just delete the entries in it so it's empty for you.
 - Set up the backup folder (`Save/`)
 - Extract your complete current portfolio
 
@@ -146,24 +154,17 @@ On first run, the script will:
 ### Project Structure
 
 ```
-easybourse-automation/
+BetterFinancialReport/
 │
-├── Core Files
-│   ├── easybourse_valorisation.py    # Main extraction engine
-│   ├── logins.py                      # Credentials (git-ignored)
-│   └── requirements.txt               # Python dependencies
-│
-├── Execution
-│   ├── Update_Dashboard.bat           # One-click launcher
-│   └── Install_Requirements.bat       # Dependency installer
-│
-├── Data & Visualization
-│   ├── EasyBourse.xlsx               # Generated database
-│   ├── EasyBourse.pbix               # Power BI dashboard
-│   └── Save/                         # Automatic backups
-│
-└── Documentation
-    └── README.md                      # This file
+├── easybourse_valorisation.py      #Extraction script
+├── logins.py                       #Storing Id and Password here
+├── requirements.txt                #Required library to install
+├── Update_Dashboard.bat            #.bat file to automate the extraction
+├── Install_Requirements.bat        #.bat file to easily install requirements
+├── EasyBourse.xlsx                 #Excel database  
+├── EasyBourse.pbix                 #PowerBi report       
+├── Save/                           #Folder where the last 10 Excel database are saved    
+└── README_Data/                    #Just storing GIFs for the README
 ```
 
 ### Technical Implementation
@@ -390,12 +391,6 @@ def backup_excel(self, excel_path):
 
 <div align="center">
 
-### Project Status
-
-![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)
-![Issues](https://img.shields.io/github/issues/your-username/easybourse-automation)
-![Pull Requests](https://img.shields.io/github/issues-pr/your-username/easybourse-automation)
-
-**Note:** This project is not affiliated with EasyBourse, Crédit Agricole, or any financial institution.
+**Note:** This project is not affiliated with EasyBourse, La Banque postale, or any financial institution.
 
 </div>
