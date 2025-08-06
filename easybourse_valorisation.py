@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 import logging
 import re
 
-# Configuration du logging
+# Logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -22,95 +22,95 @@ class EasyBourseValorisationDownloader:
         self.base_url = "https://www.easybourse.com"
         self.valorisation_url = f"{self.base_url}/secure/compte/valorisation"
 
-        # Définir le répertoire de téléchargement
+        # Define download directory
         if download_dir is None:
             self.download_dir = os.path.dirname(os.path.abspath(__file__))
         else:
             self.download_dir = download_dir
 
-        logger.info(f"Répertoire de téléchargement: {self.download_dir}")
+        logger.info(f"Download directory: {self.download_dir}")
 
     def setup_driver(self):
-        """Configure et retourne un driver Selenium avec téléchargement automatique"""
+        """Configure and return a Selenium driver with automatic download"""
         try:
             options = Options()
 
-            # Configuration pour le téléchargement automatique
+            # Configuration for automatic download
             prefs = {
                 "download.default_directory": self.download_dir,
                 "download.prompt_for_download": False,
                 "download.directory_upgrade": True,
                 "safebrowsing.enabled": True,
-                "plugins.always_open_pdf_externally": True  # Pour les PDF si besoin
+                "plugins.always_open_pdf_externally": True  # For PDFs if needed
             }
             options.add_experimental_option("prefs", prefs)
 
-            # ===== MODE HEADLESS ACTIVÉ =====
-            options.add_argument('--headless=new')  # Nouveau mode headless plus stable
-            options.add_argument('--disable-gpu')  # Recommandé pour le mode headless
-            options.add_argument('--window-size=1920,1080')  # Important en headless
+            # ===== HEADLESS MODE ENABLED =====
+            options.add_argument('--headless=new')  # New more stable headless mode
+            options.add_argument('--disable-gpu')  # Recommended for headless mode
+            options.add_argument('--window-size=1920,1080')  # Important in headless
 
-            # Options pour éviter la détection
+            # Options to avoid detection
             options.add_argument('--disable-blink-features=AutomationControlled')
             options.add_experimental_option("excludeSwitches", ["enable-automation"])
             options.add_experimental_option('useAutomationExtension', False)
 
-            # Autres options utiles
+            # Other useful options
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
             options.add_argument('--disable-web-security')
             options.add_argument('--disable-features=VizDisplayCompositor')
             options.add_argument('--disable-extensions')
 
-            # Pour réduire les logs
+            # To reduce logs
             options.add_argument('--log-level=3')  # Fatal errors only
             options.add_argument('--silent')
 
             driver = webdriver.Chrome(options=options)
             driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
-            # Pas besoin de set_window_size car déjà défini dans les options
+            # No need for set_window_size as already defined in options
 
             return driver
         except Exception as e:
-            logger.error(f"Erreur lors de la configuration du driver: {e}")
+            logger.error(f"Error configuring driver: {e}")
             raise
 
     def login(self, driver):
-        """Se connecte à EasyBourse"""
+        """Log in to EasyBourse"""
         try:
-            # Étape 1: Page de connexion - Entrer l'identifiant
-            logger.info("Navigation vers la page de connexion...")
+            # Step 1: Login page - Enter username
+            logger.info("Navigating to login page...")
             driver.get(f"{self.base_url}/login")
 
-            # Attendre que le champ username soit visible
+            # Wait for username field to be visible
             wait = WebDriverWait(driver, 10)
             username_field = wait.until(
                 EC.presence_of_element_located((By.NAME, "username"))
             )
 
-            # Accepter les cookies si présent
+            # Accept cookies if present
             try:
-                logger.info("Acceptation des cookies...")
+                logger.info("Accepting cookies...")
                 time.sleep(2)
                 driver.find_element(By.XPATH, "//button[contains(text(), 'Ok pour moi')]").click()
             except:
                 pass
 
-            logger.info("Saisie de l'identifiant...")
+            logger.info("Entering username...")
             username_field.send_keys(self.username)
 
-            # Cliquer sur le bouton Continuer
+            # Click Continue button
             continue_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Continuer')]")
             continue_button.click()
 
-            # Étape 2: Page du mot de passe
-            logger.info("En attente de la page de mot de passe...")
+            # Step 2: Password page
+            logger.info("Waiting for password page...")
             time.sleep(2)
 
-            # Gérer le clavier virtuel ou le champ normal
+            # Handle virtual keyboard or normal field
             try:
-                # Détecter le clavier virtuel
+                # Detect virtual keyboard
                 virtual_keyboard = None
                 for key_id in range(1000):
                     try:
@@ -119,13 +119,13 @@ class EasyBourseValorisationDownloader:
                                   el.text.strip().isdigit() and len(el.text.strip()) == 1]
                         if set(digits) == set("0123456789"):
                             virtual_keyboard = elements
-                            logger.info(f"✅ Clavier virtuel détecté avec jss{key_id}")
+                            logger.info(f"✅ Virtual keyboard detected with jss{key_id}")
                             break
                     except:
                         continue
 
                 if virtual_keyboard:
-                    logger.info("Utilisation du clavier virtuel...")
+                    logger.info("Using virtual keyboard...")
                     for digit in self.password:
                         for button in virtual_keyboard:
                             if button.text == digit:
@@ -133,38 +133,38 @@ class EasyBourseValorisationDownloader:
                                 time.sleep(0.2)
                                 break
                 else:
-                    # Essayer le champ de mot de passe normal
+                    # Try normal password field
                     try:
                         password_field = driver.find_element(By.NAME, "password")
                         password_field.send_keys(self.password)
                     except:
-                        logger.info("Veuillez saisir le mot de passe manuellement...")
+                        logger.info("Please enter password manually...")
                         time.sleep(30)
 
             except Exception as e:
-                logger.error(f"Erreur lors de la saisie du mot de passe: {e}")
+                logger.error(f"Error entering password: {e}")
 
-            # Cliquer sur Se connecter
+            # Click Login button
             login_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Se connecter')]")
             login_button.click()
 
-            logger.info("Connexion en cours...")
+            logger.info("Logging in...")
             time.sleep(5)
 
             return True
 
         except Exception as e:
-            logger.error(f"Erreur lors de la connexion: {e}")
+            logger.error(f"Login error: {e}")
             return False
 
     def download_valorisation_csv(self, driver):
-        """Télécharge le fichier CSV de valorisation"""
+        """Download the valuation CSV file"""
 
-        # URL de la page de téléchargement du CSV
+        # URL for CSV download page
         driver.get('https://www.easybourse.com/easybourse/secure/exportCsvValorisationTempsReel.html?siteLanguage=fr')
         files_before = set(os.listdir(self.download_dir))
 
-        # Attendre que le fichier soit téléchargé
+        # Wait for file to download
         timeout = 30
         start_time = time.time()
 
@@ -172,12 +172,12 @@ class EasyBourseValorisationDownloader:
             files_after = set(os.listdir(self.download_dir))
             new_files = files_after - files_before
 
-            # Chercher un fichier CSV nouvellement créé
+            # Look for newly created CSV file
             csv_files = [f for f in new_files if f.endswith('.csv')]
 
             if csv_files:
                 csv_filename = csv_files[0]
-                logger.info(f"Fichier CSV téléchargé: {csv_filename}")
+                logger.info(f"CSV file downloaded: {csv_filename}")
                 return os.path.join(self.download_dir, csv_filename)
 
             time.sleep(1)
@@ -185,29 +185,29 @@ class EasyBourseValorisationDownloader:
         return None
 
     def parse_csv_data(self, csv_path):
-        """Parse le fichier CSV et extrait les données avec les totaux comme colonnes"""
+        """Parse CSV file and extract data with totals as columns"""
         try:
-            # Lire le fichier avec l'encodage approprié
+            # Read file with appropriate encoding
             with open(csv_path, 'r', encoding='cp1252') as f:
                 content = f.read()
 
             lines = content.split('\n')
 
-            # Extraire la date de valorisation (ligne 2)
+            # Extract valuation date (line 2)
             date_match = re.search(r'Valorisation au;(\d{2}/\d{2}/\d{4})', lines[2] if len(lines) > 2 else '')
             if date_match:
                 date_str = date_match.group(1)
                 valorisation_date = datetime.strptime(date_str, '%d/%m/%Y')
-                logger.info(f"Date de valorisation: {valorisation_date.strftime('%d/%m/%Y')}")
+                logger.info(f"Valuation date: {valorisation_date.strftime('%d/%m/%Y')}")
             else:
                 valorisation_date = datetime.now()
-                logger.warning("Date de valorisation non trouvée, utilisation de la date actuelle")
+                logger.warning("Valuation date not found, using current date")
 
-            # Extraire les totaux du CSV (lignes 7-12)
+            # Extract totals from CSV (lines 7-12)
             totals_dict = {}
 
-            logger.info("Extraction des totaux...")
-            for i in range(7, 13):  # Lignes 7 à 12
+            logger.info("Extracting totals...")
+            for i in range(7, 13):  # Lines 7 to 12
                 if i < len(lines) and lines[i].strip():
                     parts = lines[i].split(';')
                     if len(parts) >= 2 and parts[0].strip():
@@ -215,10 +215,10 @@ class EasyBourseValorisationDownloader:
                         montant = parts[1].strip() if len(parts) > 1 else '0'
 
                         try:
-                            # Convertir le montant
+                            # Convert amount
                             montant_float = float(montant.replace(',', '.').replace(' ', ''))
 
-                            # Mapper les labels aux noms de colonnes
+                            # Map labels to column names
                             if label == 'Total positions sous dossier':
                                 totals_dict['Total positions sous dossier'] = montant_float
                             elif label == 'Solde espèces':
@@ -229,9 +229,9 @@ class EasyBourseValorisationDownloader:
                             logger.info(f"  • {label}: {montant_float:,.2f}€")
 
                         except ValueError as e:
-                            logger.warning(f"Impossible de convertir la valeur pour {label}: {montant}")
+                            logger.warning(f"Unable to convert value for {label}: {montant}")
 
-            # Trouver le début du tableau des positions
+            # Find beginning of positions table
             header_index = -1
             for i, line in enumerate(lines):
                 if 'Valeur;Code Isin;Place de cotation' in line:
@@ -239,27 +239,27 @@ class EasyBourseValorisationDownloader:
                     break
 
             if header_index == -1:
-                logger.error("En-têtes du tableau non trouvés")
+                logger.error("Table headers not found")
                 return None
 
-            # Extraire les positions
+            # Extract positions
             positions_lines = []
             for i in range(header_index, len(lines)):
                 if lines[i].strip() and ';' in lines[i]:
                     positions_lines.append(lines[i])
 
-            # Parser les positions
+            # Parse positions
             import io
             positions_content = '\n'.join(positions_lines)
             df = pd.read_csv(io.StringIO(positions_content), sep=';', decimal=',')
 
-            # Nettoyer les colonnes
+            # Clean columns
             df.columns = df.columns.str.strip()
 
-            # Ajouter la date
+            # Add date
             df['Date'] = valorisation_date
 
-            # Convertir les colonnes numériques
+            # Convert numeric columns
             numeric_columns = ['Quantité', 'Cours', 'Prix moyen', 'Valorisation', '+/- value', 'Performance (%)',
                                'Poids']
 
@@ -279,97 +279,97 @@ class EasyBourseValorisationDownloader:
 
                     df[col] = df[col].apply(safe_convert)
 
-            # IMPORTANT : Ajouter les totaux comme colonnes (même valeur pour toutes les lignes)
+            # IMPORTANT: Add totals as columns (same value for all rows)
             for col_name, value in totals_dict.items():
                 df[col_name] = value
 
-            logger.info(f"Colonnes de totaux ajoutées: {list(totals_dict.keys())}")
+            logger.info(f"Total columns added: {list(totals_dict.keys())}")
 
-            # Afficher un résumé
-            logger.info(f"Données extraites: {len(df)} positions")
+            # Display summary
+            logger.info(f"Data extracted: {len(df)} positions")
             if len(df) > 0:
                 valorisation_totale = df['Valorisation'].sum()
-                logger.info(f"Valorisation calculée des positions: {valorisation_totale:,.2f}€")
+                logger.info(f"Calculated positions valuation: {valorisation_totale:,.2f}€")
                 if 'Total positions sous dossier' in totals_dict:
-                    logger.info(f"Total positions (du CSV): {totals_dict['Total positions sous dossier']:,.2f}€")
+                    logger.info(f"Total positions (from CSV): {totals_dict['Total positions sous dossier']:,.2f}€")
 
             return df
 
         except Exception as e:
-            logger.error(f"Erreur lors du parsing du CSV: {e}")
+            logger.error(f"Error parsing CSV: {e}")
             import traceback
             logger.error(traceback.format_exc())
             return None
 
     def update_excel(self, df_new, excel_path='EasyBourse.xlsx'):
-        """Met à jour le fichier Excel avec les nouvelles données incluant les colonnes de totaux"""
+        """Update Excel file with new data including total columns"""
         try:
-            logger.info(f"📁 Mise à jour du fichier : {excel_path}")
+            logger.info(f"📁 Updating file: {excel_path}")
 
-            # Colonnes de totaux à gérer
+            # Total columns to manage
             TOTAL_COLUMNS = ['Valeur totale', 'Total positions sous dossier', 'Solde espèces']
 
-            # S'assurer que les colonnes de totaux existent dans df_new
+            # Ensure total columns exist in df_new
             for col in TOTAL_COLUMNS:
                 if col not in df_new.columns:
                     df_new[col] = None
 
-            # Vérifier si le fichier Excel existe
+            # Check if Excel file exists
             if os.path.exists(excel_path):
-                # Lire le fichier existant
+                # Read existing file
                 df_existing = pd.read_excel(excel_path, sheet_name='Data')
-                logger.info(f"📊 Fichier existant chargé : {len(df_existing)} lignes")
+                logger.info(f"📊 Existing file loaded: {len(df_existing)} rows")
 
-                # S'assurer que les colonnes de totaux existent dans df_existing
+                # Ensure total columns exist in df_existing
                 for col in TOTAL_COLUMNS:
                     if col not in df_existing.columns:
                         df_existing[col] = None
 
-                # S'assurer que les dates sont au bon format
+                # Ensure dates are in correct format
                 df_existing['Date'] = pd.to_datetime(df_existing['Date'])
                 df_new['Date'] = pd.to_datetime(df_new['Date'])
 
-                # Obtenir les dates uniques du nouveau CSV
+                # Get unique dates from new CSV
                 new_dates = df_new['Date'].unique()
 
-                # Traiter chaque date du nouveau CSV
+                # Process each date from new CSV
                 for date in new_dates:
-                    # Extraire les données pour cette date
+                    # Extract data for this date
                     df_date_new = df_new[df_new['Date'] == date].copy()
 
-                    # Récupérer les valeurs des totaux pour cette date (même pour toutes les lignes)
+                    # Get total values for this date (same for all rows)
                     totals_values = {}
                     for col in TOTAL_COLUMNS:
                         if col in df_date_new.columns and not df_date_new[col].isna().all():
-                            totals_values[col] = df_date_new[col].iloc[0]  # Prendre la première valeur
+                            totals_values[col] = df_date_new[col].iloc[0]  # Take first value
 
-                    logger.info(f"📅 Traitement de la date {date.strftime('%d/%m/%Y')}")
-                    logger.info(f"   Totaux: {totals_values}")
+                    logger.info(f"📅 Processing date {date.strftime('%d/%m/%Y')}")
+                    logger.info(f"   Totals: {totals_values}")
 
-                    # Vérifier si cette date existe déjà dans le fichier Excel
+                    # Check if this date already exists in Excel file
                     if date in df_existing['Date'].values:
-                        logger.info(f"✅ Date {date.strftime('%d/%m/%Y')} existe déjà dans Excel")
+                        logger.info(f"✅ Date {date.strftime('%d/%m/%Y')} already exists in Excel")
 
-                        # Pour chaque position de cette date dans le nouveau CSV
+                        # For each position of this date in new CSV
                         for idx, row in df_date_new.iterrows():
                             valeur = row['Valeur']
 
-                            # Vérifier si cette action existe déjà pour cette date
+                            # Check if this stock already exists for this date
                             mask = (df_existing['Date'] == date) & (df_existing['Valeur'] == valeur)
 
                             if mask.any():
-                                # Mise à jour de la ligne existante
-                                logger.info(f"   🔄 Mise à jour de {valeur}")
+                                # Update existing row
+                                logger.info(f"   🔄 Updating {valeur}")
                                 update_idx = df_existing[mask].index[0]
 
-                                # Mettre à jour toutes les colonnes
+                                # Update all columns
                                 for col in df_new.columns:
                                     df_existing.at[update_idx, col] = row[col]
                             else:
-                                # Ajouter la nouvelle position
-                                logger.info(f"   ➕ Ajout de {valeur}")
+                                # Add new position
+                                logger.info(f"   ➕ Adding {valeur}")
 
-                                # Trouver où insérer la nouvelle ligne
+                                # Find where to insert new row
                                 date_mask = df_existing['Date'] == date
                                 if date_mask.any():
                                     last_idx_for_date = df_existing[date_mask].index[-1]
@@ -377,24 +377,24 @@ class EasyBourseValorisationDownloader:
                                 else:
                                     insert_idx = len(df_existing)
 
-                                # Insérer la nouvelle ligne
+                                # Insert new row
                                 df_existing = pd.concat([
                                     df_existing.iloc[:insert_idx],
                                     pd.DataFrame([row]),
                                     df_existing.iloc[insert_idx:]
                                 ], ignore_index=True)
 
-                        # Mettre à jour les colonnes de totaux pour toutes les lignes de cette date
+                        # Update total columns for all rows of this date
                         date_mask = df_existing['Date'] == date
                         for col, value in totals_values.items():
                             df_existing.loc[date_mask, col] = value
-                            logger.info(f"   📊 Mise à jour {col} = {value:,.2f} pour toutes les lignes")
+                            logger.info(f"   📊 Updating {col} = {value:,.2f} for all rows")
 
                     else:
-                        # Date n'existe pas, ajouter toutes les lignes
-                        logger.info(f"🆕 Nouvelle date {date.strftime('%d/%m/%Y')}, ajout de {len(df_date_new)} lignes")
+                        # Date doesn't exist, add all rows
+                        logger.info(f"🆕 New date {date.strftime('%d/%m/%Y')}, adding {len(df_date_new)} rows")
 
-                        # Trouver où insérer selon l'ordre chronologique
+                        # Find where to insert according to chronological order
                         if len(df_existing) > 0:
                             dates_existing = df_existing['Date'].unique()
                             dates_existing_sorted = sorted(dates_existing)
@@ -409,7 +409,7 @@ class EasyBourseValorisationDownloader:
                             if insert_position is None:
                                 insert_position = len(df_existing)
 
-                            # Insérer les nouvelles données
+                            # Insert new data
                             df_existing = pd.concat([
                                 df_existing.iloc[:insert_position],
                                 df_date_new,
@@ -421,71 +421,71 @@ class EasyBourseValorisationDownloader:
                 df_combined = df_existing
 
             else:
-                # Si le fichier n'existe pas, utiliser les nouvelles données
+                # If file doesn't exist, use new data
                 df_combined = df_new
-                logger.info(f"🆕 Création d'un nouveau fichier Excel avec {len(df_new)} lignes")
+                logger.info(f"🆕 Creating new Excel file with {len(df_new)} rows")
 
-            # Trier par date puis par valeur
+            # Sort by date then by value
             df_combined = df_combined.sort_values(['Date', 'Valeur'], ascending=[True, True])
 
-            # Réinitialiser l'index
+            # Reset index
             df_combined = df_combined.reset_index(drop=True)
 
-            # Nettoyer df_combined : supprimer les colonnes Unnamed
+            # Clean df_combined: remove Unnamed columns
             df_combined = df_combined.loc[:, ~df_combined.columns.str.contains('Unnamed')]
 
-            logger.info(f"📊 Total après mise à jour: {len(df_combined)} lignes")
+            logger.info(f"📊 Total after update: {len(df_combined)} rows")
 
-            # Sauvegarder dans Excel
-            logger.info(f"💾 Sauvegarde dans : {excel_path}")
+            # Save to Excel
+            logger.info(f"💾 Saving to: {excel_path}")
             with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
                 df_combined.to_excel(writer, sheet_name='Data', index=False)
 
-                # Ajuster la largeur des colonnes
+                # Adjust column widths
                 worksheet = writer.sheets['Data']
                 for idx, column in enumerate(df_combined.columns):
                     column_length = max(
                         df_combined[column].astype(str).map(len).max(),
                         len(column)
                     )
-                    # Gérer les colonnes au-delà de Z
+                    # Handle columns beyond Z
                     if idx < 26:
                         col_letter = chr(65 + idx)
                     else:
                         col_letter = chr(65 + idx // 26 - 1) + chr(65 + idx % 26)
                     worksheet.column_dimensions[col_letter].width = min(column_length + 2, 50)
 
-                # Formater les colonnes de totaux avec une couleur de fond
+                # Format total columns with background color
                 from openpyxl.styles import PatternFill, Font
                 light_blue_fill = PatternFill(start_color="E6F3FF", end_color="E6F3FF", fill_type="solid")
                 bold_font = Font(bold=True)
 
-                # Trouver les indices des colonnes de totaux
+                # Find total column indices
                 for col_name in TOTAL_COLUMNS:
                     if col_name in df_combined.columns:
-                        col_idx = df_combined.columns.get_loc(col_name) + 1  # +1 car Excel commence à 1
+                        col_idx = df_combined.columns.get_loc(col_name) + 1  # +1 because Excel starts at 1
 
-                        # Formater l'en-tête
+                        # Format header
                         header_cell = worksheet.cell(row=1, column=col_idx)
                         header_cell.fill = light_blue_fill
                         header_cell.font = bold_font
 
-                        # Formater les données avec un fond léger
+                        # Format data with light background
                         for row in range(2, len(df_combined) + 2):
                             cell = worksheet.cell(row=row, column=col_idx)
                             cell.fill = light_blue_fill
 
-            logger.info(f"✅ Fichier Excel mis à jour: {excel_path}")
+            logger.info(f"✅ Excel file updated: {excel_path}")
             return True
 
         except Exception as e:
-            logger.error(f"❌ Erreur lors de la mise à jour du fichier Excel: {e}")
+            logger.error(f"❌ Error updating Excel file: {e}")
             import traceback
             logger.error(traceback.format_exc())
             return False
 
     def backup_excel(self, excel_path):
-        """Crée une sauvegarde du fichier Excel avant modification"""
+        """Create a backup of the Excel file before modification"""
         if os.path.exists(excel_path):
             backup_dir = 'Save'
             os.makedirs(backup_dir, exist_ok=True)
@@ -495,70 +495,70 @@ class EasyBourseValorisationDownloader:
 
             import shutil
             shutil.copy2(excel_path, backup_path)
-            logger.info(f"Sauvegarde créée: {backup_path}")
+            logger.info(f"Backup created: {backup_path}")
 
-            # Nettoyer les anciennes sauvegardes (garder seulement les 10 dernières)
+            # Clean old backups (keep only last 10)
             backups = sorted([f for f in os.listdir(backup_dir) if f.endswith('.xlsx')])
             if len(backups) > 10:
                 for old_backup in backups[:-10]:
                     os.remove(os.path.join(backup_dir, old_backup))
-                    logger.info(f"Ancienne sauvegarde supprimée: {old_backup}")
+                    logger.info(f"Old backup deleted: {old_backup}")
 
     def run(self, excel_path=None):
-        """Exécute le processus complet"""
+        """Execute complete process"""
         driver = None
         try:
-            # Définir le chemin du fichier Excel
+            # Define Excel file path
             if excel_path is None:
                 excel_path = 'EasyBourse.xlsx'
 
-            # Créer le chemin absolu si nécessaire
+            # Create absolute path if necessary
             excel_path = os.path.abspath(excel_path)
-            logger.info(f"Fichier Excel cible : {excel_path}")
+            logger.info(f"Target Excel file: {excel_path}")
 
-            # Configurer le driver
+            # Configure driver
             driver = self.setup_driver()
 
-            # Se connecter
+            # Login
             if not self.login(driver):
-                logger.error("Échec de la connexion")
+                logger.error("Login failed")
                 return False
 
 
-            # Télécharger le CSV
+            # Download CSV
             csv_path = self.download_valorisation_csv(driver)
             if not csv_path:
-                logger.error("Échec du téléchargement du CSV")
-                logger.error("Vérifier votre connexion Internet ou vos identifiants de connexion")
+                logger.error("CSV download failed")
+                logger.error("Check your internet connection or login credentials")
                 return False
 
-            # Parser les données
+            # Parse data
             df = self.parse_csv_data(csv_path)
             if df is None:
-                logger.error("Échec du parsing du CSV")
+                logger.error("CSV parsing failed")
                 return False
 
-            # Créer une sauvegarde si le fichier existe
+            # Create backup if file exists
             if os.path.exists(excel_path):
                 self.backup_excel(excel_path)
 
-            # Mettre à jour Excel - IMPORTANT: Passer excel_path en paramètre !
-            if self.update_excel(df, excel_path):  # <-- Correction ici
-                logger.info("✅ Processus terminé avec succès!")
+            # Update Excel - IMPORTANT: Pass excel_path as parameter!
+            if self.update_excel(df, excel_path):  # <-- Fix here
+                logger.info("✅ Process completed successfully!")
 
-                # Optionnel : Supprimer le CSV téléchargé
+                # Optional: Delete downloaded CSV
                 try:
                     os.remove(csv_path)
-                    logger.info(f"Fichier CSV temporaire supprimé : {csv_path}")
+                    logger.info(f"Temporary CSV file deleted: {csv_path}")
                 except Exception as e:
-                    logger.warning(f"Impossible de supprimer le CSV : {e}")
+                    logger.warning(f"Unable to delete CSV: {e}")
 
                 return True
             else:
                 return False
 
         except Exception as e:
-            logger.error(f"Erreur générale: {e}")
+            logger.error(f"General error: {e}")
             import traceback
             logger.error(traceback.format_exc())
             return False
@@ -567,14 +567,14 @@ class EasyBourseValorisationDownloader:
                 driver.quit()
 
 
-# Utilisation du script
+# Script usage
 if __name__ == "__main__":
-    # Remplacer par vos identifiants
+    # Replace with your credentials
     from logins import id, password
 
     USERNAME = id
     PASSWORD = password
 
-    # Créer et lancer le downloader
+    # Create and launch downloader
     downloader = EasyBourseValorisationDownloader(USERNAME, PASSWORD)
     downloader.run()
