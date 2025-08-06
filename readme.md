@@ -4,7 +4,6 @@
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Selenium](https://img.shields.io/badge/Selenium-4.15+-green.svg)
-![Power BI](https://img.shields.io/badge/Power%20BI-Ready-yellow.svg)
 ![License](https://img.shields.io/badge/License-GPL%20v3-green.svg)
 
 <h3>Automated portfolio data extraction and visualization system for EasyBourse with Power BI integration</h3>
