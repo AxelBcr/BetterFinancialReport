@@ -46,13 +46,10 @@ The script automatically connects to EasyBourse using Selenium WebDriver in head
 Once authenticated, it directly accesses the real-time CSV export URL and downloads the complete portfolio valuation data.  
 The entire process is logged in the console, showing connection status, download progress, and data parsing steps.
 
-<table>
-   <tr>
-      <td><img src="README_Data/Updating_bat.gif" style="max-width: 100%; width="600"/></td>
-      <td><img src="README_Data/CMD_Script.gif" style="max-width: 100%; width="600"/></td>
-   </tr>
-</table>
+<div align="center">
+<img src="README_Data/CMD_Script.gif" style="max-width: 100%; width="600"/>
 <br><br>
+</div>
 
 ---
 
